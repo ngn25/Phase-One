@@ -15,15 +15,16 @@ public class CourseService
     {
         if (!Data.ContainsKey(course.Id))
         {
-
-
-
-            Teacher teacher = TeacherService.GetById(course.TeacherId);
-                 if (teacher != null) 
+             Teacher teacher = TeacherService.GetById(course.TeacherId);
+            if (teacher != null)
+            {
+                if (DoStudentExist(course.studeniIds))
                 {
-                    Data.Add(course.Id,course); 
+                    Data.Add(course.Id,course);   
                 }
-       }
+            
+            }                
+        }
     }
 
     public Course GetById(string Id) 
@@ -55,4 +56,12 @@ public class CourseService
     {
         Data.Remove(Id);
     }
+
+    private bool DoStudentExist(List<string> studeniIds)
+    {
+        return true;
+    }
+
+
+    
 }
