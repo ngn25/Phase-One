@@ -219,9 +219,10 @@ class Program
                 Console.WriteLine("Teacher updated.");
                 continue;
 
-           }
-                       // ========================= COURSE ADD ================================
-            if (target.Equals("course", StringComparison.OrdinalIgnoreCase) &&
+            }
+
+            // ========================= COURSE ADD ================================
+         if (target.Equals("course", StringComparison.OrdinalIgnoreCase) &&
                 action.Equals("add", StringComparison.OrdinalIgnoreCase))
             {
                 if (parts.Length < 5)
@@ -230,13 +231,39 @@ class Program
                     continue;
                 }
 
-                Course course = new Course(parts[2], parts[3], parts[4], new List<string>());
+                string courseId = parts[2];
+                string courseName = parts[3];
+                string teacherId = parts[4];
+
+                var studentIds = new List<string>();
+                if (parts.Length > 5)
+                {
+                    for (int i = 5; i < parts.Length; i++)
+                    {
+                        string studentId = parts[i];
+                        if (studentService.GetById(studentId) != null)
+                        {
+                            studentIds.Add(studentId);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Student {studentId} not found! Ignored.");
+                        }
+                    }
+                }
+
+                Course course = new Course()
+                {
+                    Id = courseId,
+                    Name = courseName,
+                    TeacherId = teacherId,
+                    StudentIds = studentIds
+                };
 
                 courseService.Add(course);
                 Console.WriteLine("Course added.");
                 continue;
-            }
-
+            } 
             // ========================= COURSE GETALL ================================
             if (target.Equals("course", StringComparison.OrdinalIgnoreCase) &&
                 action.Equals("getall", StringComparison.OrdinalIgnoreCase))
@@ -275,7 +302,7 @@ class Program
 
             // ========================= COURSE UPDATE ================================
             if (target.Equals("course", StringComparison.OrdinalIgnoreCase) &&
-                action.Equals("update", StringComparison.OrdinalIgnoreCase))
+                        action.Equals("update", StringComparison.OrdinalIgnoreCase))
             {
                 if (parts.Length < 5)
                 {
@@ -290,19 +317,44 @@ class Program
                     continue;
                 }
 
+                string newName = parts[3];
+                string newTeacherId = parts[4];
+
+                List<string> newStudentIds = new List<string>();
+                if (parts.Length > 5)
+                {
+                    for (int i = 5; i < parts.Length; i++)
+                    {
+                        string studentId = parts[i];
+                        if (studentService.GetById(studentId) != null)
+                        {
+                            newStudentIds.Add(studentId);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Student {studentId} not found! Ignored.");
+                        }
+                    }
+                }
+                else
+                {
+                    // اگر دانشجو نداد، لیست قبلی رو نگه دار
+                    newStudentIds = oldCourse.StudentIds;
+                }
+
                 Course updatedCourse = new Course()
                 {
                     Id = parts[2],
-                    Name = parts[3],
-                    TeacherId = parts[4],
-                    StudentIds = oldCourse.StudentIds
+                    Name = newName,
+                    TeacherId = newTeacherId,
+                    StudentIds = newStudentIds
                 };
 
                 courseService.Update(updatedCourse);
                 Console.WriteLine("Course updated.");
                 continue;
+
             }
-           
 
         }
     }
