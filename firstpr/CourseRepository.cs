@@ -1,5 +1,4 @@
 using Microsoft.Data.SqlClient;
-using System.Collections.Generic;
 
 namespace firstpr
 {
@@ -7,18 +6,18 @@ namespace firstpr
     {
         public List<Course> GetAll()
         {
-            var courses = new List<Course>();
+            var list = new List<Course>();
 
             using var conn = DatabaseConnection.GetConnection();
             conn.Open();
 
-            // اول همه درس‌ها رو از جدول Courses می‌خونیم
+            // 1. همه درس‌ها رو بخون
             using var cmd = new SqlCommand("SELECT Id, Name, TeacherId FROM Courses", conn);
             using var reader = cmd.ExecuteReader();
 
             while (reader.Read())
             {
-                courses.Add(new Course
+                list.Add(new Course
                 {
                     Id = reader.GetString(0),
                     Name = reader.GetString(1),
@@ -26,25 +25,26 @@ namespace firstpr
                     StudentIds = new List<string>()
                 });
             }
-            reader.Close();
+            reader.Close(); // مهمه!
 
-            // حالا برای هر درس، دانشجوهاش رو از جدول CourseStudents می‌گیریم
-            foreach (var course in courses)
+            // 2. دانشجوهای هر درس رو بخون
+            using var cmd2 = new SqlCommand("SELECT CourseId, StudentId FROM CourseStudents", conn);
+            using var reader2 = cmd2.ExecuteReader();
+
+            while (reader2.Read())
             {
-                using var cmd2 = new SqlCommand("SELECT StudentId FROM CourseStudents WHERE CourseId = @CourseId", conn);
-                cmd2.Parameters.AddWithValue("@CourseId", course.Id);
-                using var reader2 = cmd2.ExecuteReader();
+                string courseId = reader2.GetString(0);
+                string studentId = reader2.GetString(1);
 
-                while (reader2.Read())
-                {
-                    course.StudentIds.Add(reader2.GetString(0));
-                }
+                var course = list.Find(c => c.Id == courseId);
+                if (course != null)
+                    course.StudentIds.Add(studentId);
             }
 
-            return courses;
+            return list;
         }
 
-        public Course GetById(string id)
+        public Course? GetById(string id)
         {
             using var conn = DatabaseConnection.GetConnection();
             conn.Open();
@@ -64,10 +64,10 @@ namespace firstpr
             };
             reader.Close();
 
-            // دانشجوهای این درس رو بگیر
             using var cmd2 = new SqlCommand("SELECT StudentId FROM CourseStudents WHERE CourseId = @Id", conn);
             cmd2.Parameters.AddWithValue("@Id", id);
             using var reader2 = cmd2.ExecuteReader();
+
             while (reader2.Read())
             {
                 course.StudentIds.Add(reader2.GetString(0));
@@ -80,32 +80,23 @@ namespace firstpr
         {
             using var conn = DatabaseConnection.GetConnection();
             conn.Open();
-            using var transaction = conn.BeginTransaction();
 
-            try
+            // 1. درس رو اضافه کن
+            using var cmd = new SqlCommand(@"INSERT INTO Courses (Id, Name, TeacherId) 
+                                            VALUES (@Id, @Name, @TeacherId)", conn);
+            cmd.Parameters.AddWithValue("@Id", course.Id);
+            cmd.Parameters.AddWithValue("@Name", course.Name);
+            cmd.Parameters.AddWithValue("@TeacherId", course.TeacherId ?? (object)DBNull.Value);
+            cmd.ExecuteNonQuery();
+
+            // 2. دانشجوها رو ثبت‌نام کن
+            foreach (var sid in course.StudentIds)
             {
-                // ۱. درس رو به جدول Courses اضافه کن
-                using var cmd = new SqlCommand("INSERT INTO Courses (Id, Name, TeacherId) VALUES (@Id, @Name, @TeacherId)", conn, transaction);
-                cmd.Parameters.AddWithValue("@Id", course.Id);
-                cmd.Parameters.AddWithValue("@Name", course.Name);
-                cmd.Parameters.AddWithValue("@TeacherId", course.TeacherId);
-                cmd.ExecuteNonQuery();
-
-                // ۲. دانشجوها رو به جدول CourseStudents اضافه کن
-                foreach (var studentId in course.StudentIds)
-                {
-                    using var cmd2 = new SqlCommand("INSERT INTO CourseStudents (CourseId, StudentId) VALUES (@CourseId, @StudentId)", conn, transaction);
-                    cmd2.Parameters.AddWithValue("@CourseId", course.Id);
-                    cmd2.Parameters.AddWithValue("@StudentId", studentId);
-                    cmd2.ExecuteNonQuery();
-                }
-
-                transaction.Commit();
-            }
-            catch
-            {
-                transaction.Rollback();
-                throw;
+                using var cmd2 = new SqlCommand(@"INSERT INTO CourseStudents (CourseId, StudentId) 
+                                                VALUES (@CourseId, @StudentId)", conn);
+                cmd2.Parameters.AddWithValue("@CourseId", course.Id);
+                cmd2.Parameters.AddWithValue("@StudentId", sid);
+                cmd2.ExecuteNonQuery();
             }
         }
 
@@ -113,37 +104,27 @@ namespace firstpr
         {
             using var conn = DatabaseConnection.GetConnection();
             conn.Open();
-            using var transaction = conn.BeginTransaction();
 
-            try
+            // 1. درس رو آپدیت کن
+            using var cmd = new SqlCommand(@"UPDATE Courses SET Name = @Name, TeacherId = @TeacherId WHERE Id = @Id", conn);
+            cmd.Parameters.AddWithValue("@Id", course.Id);
+            cmd.Parameters.AddWithValue("@Name", course.Name);
+            cmd.Parameters.AddWithValue("@TeacherId", course.TeacherId ?? (object)DBNull.Value);
+            cmd.ExecuteNonQuery();
+
+            // 2. ثبت‌نام‌های قبلی رو پاک کن
+            using var cmdDel = new SqlCommand("DELETE FROM CourseStudents WHERE CourseId = @Id", conn);
+            cmdDel.Parameters.AddWithValue("@Id", course.Id);
+            cmdDel.ExecuteNonQuery();
+
+            // 3. دانشجوهای جدید رو اضافه کن
+            foreach (var sid in course.StudentIds)
             {
-                // ۱. درس اصلی رو آپدیت کن
-                using var cmd = new SqlCommand("UPDATE Courses SET Name = @Name, TeacherId = @TeacherId WHERE Id = @Id", conn, transaction);
-                cmd.Parameters.AddWithValue("@Id", course.Id);
-                cmd.Parameters.AddWithValue("@Name", course.Name);
-                cmd.Parameters.AddWithValue("@TeacherId", course.TeacherId);
-                cmd.ExecuteNonQuery();
-
-                // ۲. دانشجوهای قبلی رو پاک کن
-                using var cmdDel = new SqlCommand("DELETE FROM CourseStudents WHERE CourseId = @Id", conn, transaction);
-                cmdDel.Parameters.AddWithValue("@Id", course.Id);
-                cmdDel.ExecuteNonQuery();
-
-                // ۳. دانشجوهای جدید رو اضافه کن
-                foreach (var studentId in course.StudentIds)
-                {
-                    using var cmdIns = new SqlCommand("INSERT INTO CourseStudents (CourseId, StudentId) VALUES (@CourseId, @StudentId)", conn, transaction);
-                    cmdIns.Parameters.AddWithValue("@CourseId", course.Id);
-                    cmdIns.Parameters.AddWithValue("@StudentId", studentId);
-                    cmdIns.ExecuteNonQuery();
-                }
-
-                transaction.Commit();
-            }
-            catch
-            {
-                transaction.Rollback();
-                throw;
+                using var cmd2 = new SqlCommand(@"INSERT INTO CourseStudents (CourseId, StudentId) 
+                                                VALUES (@CourseId, @StudentId)", conn);
+                cmd2.Parameters.AddWithValue("@CourseId", course.Id);
+                cmd2.Parameters.AddWithValue("@StudentId", sid);
+                cmd2.ExecuteNonQuery();
             }
         }
 
@@ -151,27 +132,11 @@ namespace firstpr
         {
             using var conn = DatabaseConnection.GetConnection();
             conn.Open();
-            using var transaction = conn.BeginTransaction();
 
-            try
-            {
-                // اول دانشجوها رو پاک کن
-                using var cmd1 = new SqlCommand("DELETE FROM CourseStudents WHERE CourseId = @Id", conn, transaction);
-                cmd1.Parameters.AddWithValue("@Id", id);
-                cmd1.ExecuteNonQuery();
-
-                // بعد خود درس رو پاک کن
-                using var cmd2 = new SqlCommand("DELETE FROM Courses WHERE Id = @Id", conn, transaction);
-                cmd2.Parameters.AddWithValue("@Id", id);
-                cmd2.ExecuteNonQuery();
-
-                transaction.Commit();
-            }
-            catch
-            {
-                transaction.Rollback();
-                throw;
-            }
+            // CourseStudents به خاطر ON DELETE CASCADE خودکار پاک می‌شه
+            using var cmd = new SqlCommand("DELETE FROM Courses WHERE Id = @Id", conn);
+            cmd.Parameters.AddWithValue("@Id", id);
+            cmd.ExecuteNonQuery();
         }
     }
 }

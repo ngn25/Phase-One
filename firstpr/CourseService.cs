@@ -1,79 +1,109 @@
+using System;
 using System.Collections.Generic;
-using firstpr;
+using System.Linq;
 
-public class CourseService
+namespace firstpr
 {
-    private readonly StudentService _studentService;
-    private readonly TeacherService _teacherService;
-    private readonly ICourseRepository _repository;
-
-    public CourseService(StudentService studentService,
-                         TeacherService teacherService,
-                         ICourseRepository repository)
+    public class CourseService
     {
-        _studentService = studentService;
-        _teacherService = teacherService;
-        _repository = repository;
-    }
+        private readonly ICourseRepository _repository;
+        private readonly StudentService _studentService;
+        private readonly TeacherService _teacherService;
 
-    public void Add(Course course)
-    {
-        if (_repository.GetById(course.Id) != null)
-            return;
-
-        Teacher teacher = _teacherService.GetById(course.TeacherId);
-        if (teacher == null)
-            return;
-
-        if (!DoStudentsExist(course.StudentIds))
-            return;
-
-        _repository.Add(course);
-    }
-
-    public Course GetById(string Id)
-    {
-        return _repository.GetById(Id);
-    }
-
-    public List<Course> GetAll()
-    {
-        return _repository.GetAll();
-    }
-
-    public void Update(Course course)
-    {
-        if (_repository.GetById(course.Id) == null)
-            return;
-
-        Teacher teacher = _teacherService.GetById(course.TeacherId);
-        if (teacher == null)
-            return;
-
-        if (!DoStudentsExist(course.StudentIds))
-            return;
-
-        _repository.Update(course);
-    }
-
-    public void DeletById(string Id)
-    {
-        if (_repository.GetById(Id) == null)
-            return;
-
-        _repository.Delete(Id);
-    }
-
-    private bool DoStudentsExist(List<string> studentIds)
-    {
-        if (studentIds == null) return true;
-
-        foreach (var id in studentIds)
+        public CourseService(StudentService studentService, TeacherService teacherService, ICourseRepository repository)
         {
-            Student student = _studentService.GetById(id);
-            if (student == null)
-                return false;
+            _studentService = studentService;
+            _teacherService = teacherService;
+            _repository = repository;
         }
-        return true;
+
+        public void Add(Course course)
+        {
+            // چک درس تکراری نباشه
+            if (_repository.GetById(course.Id) != null)
+            {
+                Console.WriteLine($"Error: Course with id '{course.Id}' already exists!");
+                return;
+            }
+
+            // چک استاد وجود داشته باشه
+            var teacher = _teacherService.GetById(course.TeacherId);
+            if (teacher == null)
+            {
+                Console.WriteLine($"Error: Teacher with id '{course.TeacherId}' not found!");
+                return;
+            }
+
+            // چک همه دانشجوها وجود داشته باشن
+            var missingStudents = course.StudentIds
+                .Where(sid => _studentService.GetById(sid) == null)
+                .ToList();
+
+            if (missingStudents.Any())
+            {
+                Console.WriteLine($"Error: The following students not found: {string.Join(", ", missingStudents)}");
+                return;
+            }
+
+            _repository.Add(course);
+            Console.WriteLine("Course added successfully.");
+        }
+
+        public void Update(Course course)
+        {
+            // چک کن درس وجود داشته باشه
+            if (_repository.GetById(course.Id) == null)
+            {
+                Console.WriteLine($"Error: Course with id '{course.Id}' not found!");
+                return;
+            }
+
+            // چک کن استاد وجود داشته باشه
+            var teacher = _teacherService.GetById(course.TeacherId);
+            if (teacher == null)
+            {
+                Console.WriteLine($"Error: Teacher with id '{course.TeacherId}' not found!");
+                return;
+            }
+
+            // چک کن همه دانشجوها وجود داشته باشن
+            var missingStudents = course.StudentIds
+                .Where(sid => _studentService.GetById(sid) == null)
+                .ToList();
+
+            if (missingStudents.Any())
+            {
+                Console.WriteLine($"Error: The following students not found: {string.Join(", ", missingStudents)}");
+                return;
+            }
+
+            _repository.Update(course);
+            Console.WriteLine("Course updated successfully.");
+        }
+
+        public Course? GetById(string id)
+        {
+            return _repository.GetById(id);
+        }
+
+        public List<Course> GetAll()
+        {
+            return _repository.GetAll();
+        }
+
+        public void DeleteById(string id)
+        {
+            if (_repository.GetById(id) == null)
+            {
+                Console.WriteLine($"Course with id '{id}' not found!");
+                return;
+            }
+
+            _repository.Delete(id);
+            Console.WriteLine("Course removed successfully.");
+        }
+
+        // برای دسترسی مستقیم به ریپازیتوری (در صورت نیاز)
+        public ICourseRepository GetRepository() => _repository;
     }
 }

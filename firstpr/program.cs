@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using firstpr; // مطمئن شو این namespace درست باشه
+using firstpr;
 
 class Program
 {
@@ -16,15 +16,14 @@ class Program
         Console.WriteLine("  student getall | getbyid <id> | update <id> <name> <dob> <email> <phone> | remove <id>");
         Console.WriteLine("  teacher add/getall/getbyid/update/remove (same as student)");
         Console.WriteLine("  course add <id> <name> <teacherId> [studentId1 studentId2 ...]");
-        Console.WriteLine("  course getall | getbyid <id> | update <id> <name> <teacherId> [studentId1 ...] | remove <id>");
+        Console.WriteLine("  course getall | getbyid <id> | update <id> <newName> <newTeacherId> [studentId1 ...] | remove <id>");
         Console.WriteLine();
 
         while (true)
         {
             Console.Write("> ");
             string? input = Console.ReadLine();
-            if (string.IsNullOrWhiteSpace(input))
-                continue;
+            if (string.IsNullOrWhiteSpace(input)) continue;
 
             string[] parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length < 2)
@@ -33,25 +32,16 @@ class Program
                 continue;
             }
 
-            string target = parts[0];
-            string action = parts[1];
+            string target = parts[0].ToLower();
+            string action = parts[1].ToLower();
 
             // ========================= STUDENT =========================
-            if (target.Equals("student", StringComparison.OrdinalIgnoreCase))
+            if (target == "student")
             {
-                // ADD
-                if (action.Equals("add", StringComparison.OrdinalIgnoreCase))
+                if (action == "add")
                 {
-                    if (parts.Length < 7)
-                    {
-                        Console.WriteLine("Usage: student add <id> <name> <dob:yyyy-MM-dd> <email> <phone>");
-                        continue;
-                    }
-                    if (!DateOnly.TryParse(parts[4], out DateOnly dob))
-                    {
-                        Console.WriteLine("Invalid date format! Use yyyy-MM-dd");
-                        continue;
-                    }
+                    if (parts.Length < 7) { Console.WriteLine("Usage: student add <id> <name> <dob> <email> <phone>"); continue; }
+                    if (!DateOnly.TryParse(parts[4], out DateOnly dob)) { Console.WriteLine("Invalid date format! Use yyyy-MM-dd"); continue; }
 
                     var student = new Student
                     {
@@ -61,59 +51,31 @@ class Program
                         Email = parts[5],
                         PhoneNumber = parts[6]
                     };
-
                     studentService.Add(student);
                     Console.WriteLine("Student added successfully.");
                     continue;
                 }
 
-                // GETALL
-                if (action.Equals("getall", StringComparison.OrdinalIgnoreCase))
+                if (action == "getall")
                 {
                     var all = studentService.GetAll();
                     if (all.Count == 0) Console.WriteLine("No students found.");
-                    else
-                        foreach (var s in all)
-                            Console.WriteLine($"{s.Id} | {s.Name} | {s.DateOfBirth:yyyy-MM-dd} | {s.Email} | {s.PhoneNumber}");
+                    else foreach (var s in all) Console.WriteLine(s);
                     continue;
                 }
 
-                // GETBYID
-                if (action.Equals("getbyid", StringComparison.OrdinalIgnoreCase))
+                if (action == "getbyid")
                 {
-                    if (parts.Length < 3)
-                    {
-                        Console.WriteLine("Usage: student getbyid <id>");
-                        continue;
-                    }
+                    if (parts.Length < 3) { Console.WriteLine("Usage: student getbyid <id>"); continue; }
                     var student = studentService.GetById(parts[2]);
-                    if (student == null)
-                        Console.WriteLine($"Student with id '{parts[2]}' not found.");
-                    else
-                    {
-                        Console.WriteLine("=== Student Details ===");
-                        Console.WriteLine($"Id          : {student.Id}");
-                        Console.WriteLine($"Name        : {student.Name}");
-                        Console.WriteLine($"Date of Birth: {student.DateOfBirth:yyyy-MM-dd}");
-                        Console.WriteLine($"Email       : {student.Email}");
-                        Console.WriteLine($"Phone       : {student.PhoneNumber}");
-                    }
+                    Console.WriteLine(student == null ? $"Student not found: {parts[2]}" : student.ToString());
                     continue;
                 }
 
-                // UPDATE
-                if (action.Equals("update", StringComparison.OrdinalIgnoreCase))
+                if (action == "update")
                 {
-                    if (parts.Length < 7)
-                    {
-                        Console.WriteLine("Usage: student update <id> <name> <dob:yyyy-MM-dd> <email> <phone>");
-                        continue;
-                    }
-                    if (!DateOnly.TryParse(parts[4], out DateOnly dob))
-                    {
-                        Console.WriteLine("Invalid date format!");
-                        continue;
-                    }
+                    if (parts.Length < 7) { Console.WriteLine("Usage: student update <id> <name> <dob> <email> <phone>"); continue; }
+                    if (!DateOnly.TryParse(parts[4], out DateOnly dob)) { Console.WriteLine("Invalid date format!"); continue; }
 
                     var updated = new Student
                     {
@@ -123,41 +85,27 @@ class Program
                         Email = parts[5],
                         PhoneNumber = parts[6]
                     };
-
                     studentService.Update(updated);
                     Console.WriteLine("Student updated successfully.");
                     continue;
                 }
 
-                // REMOVE
-                if (action.Equals("remove", StringComparison.OrdinalIgnoreCase))
+                if (action == "remove")
                 {
-                    if (parts.Length < 3)
-                    {
-                        Console.WriteLine("Usage: student remove <id>");
-                        continue;
-                    }
+                    if (parts.Length < 3) { Console.WriteLine("Usage: student remove <id>"); continue; }
                     studentService.DeleteById(parts[2]);
-                    Console.WriteLine("Student removed (if existed).");
+                    Console.WriteLine("Student removed.");
                     continue;
                 }
             }
 
             // ========================= TEACHER =========================
-            if (target.Equals("teacher", StringComparison.OrdinalIgnoreCase))
+            if (target == "teacher")
             {
-                if (action.Equals("add", StringComparison.OrdinalIgnoreCase))
+                if (action == "add")
                 {
-                    if (parts.Length < 7)
-                    {
-                        Console.WriteLine("Usage: teacher add <id> <name> <dob:yyyy-MM-dd> <email> <phone>");
-                        continue;
-                    }
-                    if (!DateOnly.TryParse(parts[4], out DateOnly dob))
-                    {
-                        Console.WriteLine("Invalid date format!");
-                        continue;
-                    }
+                    if (parts.Length < 7) { Console.WriteLine("Usage: teacher add <id> <name> <dob> <email> <phone>"); continue; }
+                    if (!DateOnly.TryParse(parts[4], out DateOnly dob)) { Console.WriteLine("Invalid date format!"); continue; }
 
                     var teacher = new Teacher
                     {
@@ -167,56 +115,31 @@ class Program
                         Email = parts[5],
                         PhoneNumber = parts[6]
                     };
-
                     teacherService.Add(teacher);
                     Console.WriteLine("Teacher added successfully.");
                     continue;
                 }
 
-                if (action.Equals("getall", StringComparison.OrdinalIgnoreCase))
+                if (action == "getall")
                 {
                     var all = teacherService.GetAll();
                     if (all.Count == 0) Console.WriteLine("No teachers found.");
-                    else
-                        foreach (var t in all)
-                            Console.WriteLine($"{t.Id} | {t.Name} | {t.DateOfBirth:yyyy-MM-dd} | {t.Email} | {t.PhoneNumber}");
+                    else foreach (var t in all) Console.WriteLine(t);
                     continue;
                 }
 
-                if (action.Equals("getbyid", StringComparison.OrdinalIgnoreCase))
+                if (action == "getbyid")
                 {
-                    if (parts.Length < 3)
-                    {
-                        Console.WriteLine("Usage: teacher getbyid <id>");
-                        continue;
-                    }
+                    if (parts.Length < 3) { Console.WriteLine("Usage: teacher getbyid <id>"); continue; }
                     var teacher = teacherService.GetById(parts[2]);
-                    if (teacher == null)
-                        Console.WriteLine($"Teacher with id '{parts[2]}' not found.");
-                    else
-                    {
-                        Console.WriteLine("=== Teacher Details ===");
-                        Console.WriteLine($"Id          : {teacher.Id}");
-                        Console.WriteLine($"Name        : {teacher.Name}");
-                        Console.WriteLine($"Date of Birth: {teacher.DateOfBirth:yyyy-MM-dd}");
-                        Console.WriteLine($"Email       : {teacher.Email}");
-                        Console.WriteLine($"Phone       : {teacher.PhoneNumber}");
-                    }
+                    Console.WriteLine(teacher == null ? $"Teacher not found: {parts[2]}" : teacher.ToString());
                     continue;
                 }
 
-                if (action.Equals("update", StringComparison.OrdinalIgnoreCase))
+                if (action == "update")
                 {
-                    if (parts.Length < 7)
-                    {
-                        Console.WriteLine("Usage: teacher update <id> <name> <dob:yyyy-MM-dd> <email> <phone>");
-                        continue;
-                    }
-                    if (!DateOnly.TryParse(parts[4], out DateOnly dob))
-                    {
-                        Console.WriteLine("Invalid date format!");
-                        continue;
-                    }
+                    if (parts.Length < 7) { Console.WriteLine("Usage: teacher update <id> <name> <dob> <email> <phone>"); continue; }
+                    if (!DateOnly.TryParse(parts[4], out DateOnly dob)) { Console.WriteLine("Invalid date format!"); continue; }
 
                     var updated = new Teacher
                     {
@@ -226,30 +149,25 @@ class Program
                         Email = parts[5],
                         PhoneNumber = parts[6]
                     };
-
                     teacherService.Update(updated);
                     Console.WriteLine("Teacher updated successfully.");
                     continue;
                 }
 
-                if (action.Equals("remove", StringComparison.OrdinalIgnoreCase))
+                if (action == "remove")
                 {
-                    if (parts.Length < 3)
-                    {
-                        Console.WriteLine("Usage: teacher remove <id>");
-                        continue;
-                    }
+                    if (parts.Length < 3) { Console.WriteLine("Usage: teacher remove <id>"); continue; }
                     teacherService.DeleteById(parts[2]);
-                    Console.WriteLine("Teacher removed (if existed).");
+                    Console.WriteLine("Teacher removed.");
                     continue;
                 }
             }
 
             // ========================= COURSE =========================
-            if (target.Equals("course", StringComparison.OrdinalIgnoreCase))
+            if (target == "course")
             {
                 // ADD
-                if (action.Equals("add", StringComparison.OrdinalIgnoreCase))
+                if (action == "add")
                 {
                     if (parts.Length < 5)
                     {
@@ -266,8 +184,6 @@ class Program
                     {
                         if (studentService.GetById(parts[i]) != null)
                             studentIds.Add(parts[i]);
-                        else
-                            Console.WriteLine($"Student {parts[i]} not found and ignored.");
                     }
 
                     var course = new Course
@@ -284,71 +200,62 @@ class Program
                 }
 
                 // GETALL
-                if (action.Equals("getall", StringComparison.OrdinalIgnoreCase))
+                if (action == "getall")
                 {
                     var all = courseService.GetAll();
                     if (all.Count == 0) Console.WriteLine("No courses found.");
-                    else
-                        foreach (var c in all)
-                            Console.WriteLine($"{c.Id} | {c.Name} | Teacher: {c.TeacherId} | Students: {c.StudentIds.Count}");
+                    else foreach (var c in all) Console.WriteLine(c);
                     continue;
                 }
 
                 // GETBYID
-                if (action.Equals("getbyid", StringComparison.OrdinalIgnoreCase))
+                if (action == "getbyid")
                 {
-                    if (parts.Length < 3)
-                    {
-                        Console.WriteLine("Usage: course getbyid <id>");
-                        continue;
-                    }
+                    if (parts.Length < 3) { Console.WriteLine("Usage: course getbyid <id>"); continue; }
 
                     var course = courseService.GetById(parts[2]);
                     if (course == null)
                     {
-                        Console.WriteLine($"Course with id '{parts[2]}' not found.");
+                        Console.WriteLine($"Course not found: {parts[2]}");
                         continue;
                     }
 
+                    Console.WriteLine(course);
+
                     var teacher = teacherService.GetById(course.TeacherId);
-                    string teacherInfo = teacher != null ? $"{teacher.Name} ({teacher.Id})" : $"{course.TeacherId} (Not Found!)";
+                    Console.WriteLine($"Teacher: {(teacher != null ? $"{teacher.Name} ({teacher.Id})" : "Not Found")}");
 
-                    Console.WriteLine("=== Course Details ===");
-                    Console.WriteLine($"Id       : {course.Id}");
-                    Console.WriteLine($"Name     : {course.Name}");
-                    Console.WriteLine($"Teacher  : {teacherInfo}");
                     Console.WriteLine($"Students ({course.StudentIds.Count}):");
-
                     if (course.StudentIds.Count == 0)
                         Console.WriteLine("  (No students enrolled)");
                     else
                         foreach (var sid in course.StudentIds)
                         {
                             var s = studentService.GetById(sid);
-                            string info = s != null ? $"{s.Name} ({s.Id})" : $"{sid} (Not Found!)";
-                            Console.WriteLine($"  - {info}");
+                            Console.WriteLine(s != null ? $"  - {s.Name} ({s.Id})" : $"  - {sid} (Deleted)");
                         }
                     continue;
                 }
 
                 // UPDATE
-                if (action.Equals("update", StringComparison.OrdinalIgnoreCase))
+                if (action == "update")
                 {
                     if (parts.Length < 5)
                     {
-                        Console.WriteLine("Usage: course update <id> <newName> <newTeacherId> [studentId1 studentId2 ...]");
+                        Console.WriteLine("Usage: course update <id> <newName> <newTeacherId> [studentId1 ...]");
                         continue;
                     }
 
-                    var oldCourse = courseService.GetById(parts[2]);
+                    string courseId = parts[2];
+                    string newName = parts[3];
+                    string newTeacherId = parts[4];
+
+                    var oldCourse = courseService.GetById(courseId);
                     if (oldCourse == null)
                     {
                         Console.WriteLine("Course not found!");
                         continue;
                     }
-
-                    string newName = parts[3];
-                    string newTeacherId = parts[4];
 
                     var newStudentIds = new List<string>();
                     if (parts.Length > 5)
@@ -357,18 +264,16 @@ class Program
                         {
                             if (studentService.GetById(parts[i]) != null)
                                 newStudentIds.Add(parts[i]);
-                            else
-                                Console.WriteLine($"Student {parts[i]} not found and ignored.");
                         }
                     }
                     else
                     {
-                        newStudentIds = oldCourse.StudentIds; 
+                        newStudentIds = oldCourse.StudentIds;
                     }
 
                     var updatedCourse = new Course
                     {
-                        Id = parts[2],
+                        Id = courseId,
                         Name = newName,
                         TeacherId = newTeacherId,
                         StudentIds = newStudentIds
@@ -380,20 +285,16 @@ class Program
                 }
 
                 // REMOVE
-                if (action.Equals("remove", StringComparison.OrdinalIgnoreCase))
+                if (action == "remove")
                 {
-                    if (parts.Length < 3)
-                    {
-                        Console.WriteLine("Usage: course remove <id>");
-                        continue;
-                    }
-                    courseService.DeletById(parts[2]); 
-                    Console.WriteLine("Course removed (if existed).");
+                    if (parts.Length < 3) { Console.WriteLine("Usage: course remove <id>"); continue; }
+                    courseService.DeleteById(parts[2]);
+                    Console.WriteLine("Course removed.");
                     continue;
                 }
             }
 
-            Console.WriteLine("Unknown command. Type 'student', 'teacher' or 'course' followed by an action.");
+            Console.WriteLine("Unknown command. Try: student, teacher, course");
         }
     }
 }
