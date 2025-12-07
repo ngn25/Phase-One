@@ -1,39 +1,27 @@
+using System.Collections.Generic;
+using firstpr;
+
 public class TeacherService
 {
-    private Dictionary<string, Teacher> Data = new Dictionary<string, Teacher>();
+    private readonly ITeacherRepository _repository;
 
-    public void Add(Teacher teacher)
+    public TeacherService(ITeacherRepository repository)
     {
-        if (!Data.ContainsKey(teacher.Id))
-        {
-            Data.Add(teacher.Id, teacher);
-        }
+        _repository = repository;
     }
 
-    public Teacher GetById(string Id)
+    public TeacherService()
     {
-        if (Data.ContainsKey(Id))
-        {
-            return Data[Id];
-
-        }
-        return null;
-    }
-    public List<Teacher> GetAll()
-    {
-        return Data.Values.ToList();
+        _repository = new TeacherRepository();
     }
 
-    public void Update(Teacher teacher)
-    {
-        if (Data.ContainsKey(teacher.Id))
-        {
-            Data[teacher.Id] = teacher;
+    public void Add(Teacher teacher) => _repository.Add(teacher);
 
-        }
-    }
-    public void DeleteById(string Id)
-    {
-        Data.Remove(Id);
-    }
-} 
+    public Teacher GetById(string Id) => _repository.GetById(Id);
+
+    public List<Teacher> GetAll() => _repository.GetAll();
+
+    public void Update(Teacher teacher) => _repository.Update(teacher);
+
+    public void DeleteById(string Id) => _repository.Delete(Id);
+}

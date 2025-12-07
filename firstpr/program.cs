@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
+using firstpr;
 
 class Program
 {
     static void Main()
     {
-        StudentService studentService = new StudentService();
-        TeacherService teacherService = new TeacherService();
-        CourseService courseService = new CourseService(studentService, teacherService);
+        var studentService = new StudentService(new StudentRepository());
+        var teacherService = new TeacherService(new TeacherRepository()); 
+        var courseService = new CourseService(studentService, teacherService, new CourseRepository());
 
         while (true)
         {
@@ -222,8 +223,8 @@ class Program
             }
 
             // ========================= COURSE ADD ================================
-         if (target.Equals("course", StringComparison.OrdinalIgnoreCase) &&
-                action.Equals("add", StringComparison.OrdinalIgnoreCase))
+            if (target.Equals("course", StringComparison.OrdinalIgnoreCase) &&
+                   action.Equals("add", StringComparison.OrdinalIgnoreCase))
             {
                 if (parts.Length < 5)
                 {
@@ -263,7 +264,7 @@ class Program
                 courseService.Add(course);
                 Console.WriteLine("Course added.");
                 continue;
-            } 
+            }
             // ========================= COURSE GETALL ================================
             if (target.Equals("course", StringComparison.OrdinalIgnoreCase) &&
                 action.Equals("getall", StringComparison.OrdinalIgnoreCase))

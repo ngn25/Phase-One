@@ -1,98 +1,42 @@
+using firstpr;
 public class CourseService
 {
-    private Dictionary<string, Course> Data = new Dictionary<string, Course>();
-    private StudentService StudentService;
-    private TeacherService TeacherService;
-    public CourseService(StudentService StudentService, TeacherService TeacherService)
+    private readonly ICourseRepository _repository;
+    private readonly StudentService _studentService;
+    private readonly TeacherService _teacherService;
+
+    public CourseService(StudentService studentService, TeacherService teacherService, ICourseRepository repository = null)
     {
-        this.StudentService = StudentService;
-
-        this.TeacherService = TeacherService;
-
+        _studentService = studentService;
+        _teacherService = teacherService;
+        _repository = repository ?? new CourseRepository();
     }
 
     public void Add(Course course)
     {
-        if (Data.ContainsKey(course.Id))
-
-        {
+        if (string.IsNullOrEmpty(course.Id) || string.IsNullOrEmpty(course.Name) || string.IsNullOrEmpty(course.TeacherId))
             return;
-        }
-        Teacher teacher = TeacherService.GetById(course.TeacherId);
-        if (teacher == null)
-        {
+
+        if (_teacherService.GetById(course.TeacherId) == null)
             return;
-        }
-        if (!DoStudentsExist(course.StudentIds))
+
+        if (course.StudentIds != null)
         {
-            return;
-        }
-
-        Data.Add(course.Id, course);
-
-    }
-    public Course GetById(string Id)
-    {
-        if (Data.ContainsKey(Id))
-        {
-            return Data[Id];
-
-        }
-        return null;
-    }
-    public List<Course> GetAll()
-    {
-        return Data.Values.ToList();
-    }
-
-    public void Update(Course course)
-    {
-        if (!Data.ContainsKey(course.Id))
-
-        {
-            return;
-        }
-        Teacher teacher = TeacherService.GetById(course.TeacherId);
-        if (teacher == null)
-        {
-            return;
-        }
-        if (!DoStudentsExist(course.StudentIds))
-        {
-            return;
-        }
-
-        Data[course.Id] = course;
-
-    }
-    public void DeletById(string Id)
-    {
-        Data.Remove(Id);
-    }
-
-    private bool DoStudentsExist(List<string> studentIds)
-    {
-
-        for (int i = 0; i < studentIds.Count; i++)
-        {
-
-            string id = studentIds[i];
-
-            Student student = StudentService.GetById(id);
-
-            if (student==null)
+            foreach (var sid in course.StudentIds)
             {
-
-                return false;
+                if (_studentService.GetById(sid) == null)
+                    return;
             }
-
         }
-        return true;
+
+        _repository.Add(course);
     }
 
+    public Course GetById(string id) => _repository.GetById(id);
 
+    public List<Course> GetAll() => _repository.GetAll();
 
+    public void Update(Course course) => _repository.Update(course);
 
-
-
+    public void DeletById(string id) => _repository.Delete(id);  // اسم متد تو کد اصلیت DeletById هست
 }

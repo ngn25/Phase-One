@@ -1,54 +1,19 @@
+using firstpr;
 public class StudentService
 {
-    private Dictionary<string, Student > Data=new Dictionary<string, Student >();
+    private readonly IStudentRepository _repository;
 
-    public void Add(Student student)
+    public StudentService(IStudentRepository repository)
     {
-        if (!Data.ContainsKey(student.Id))
-        {
-            Data.Add(student.Id,student);
-        }
+        _repository = repository;
     }
 
-    public Student GetById(string Id)
-    {
-        if (Data.ContainsKey(Id))
-        {
-            return Data[Id];
-    
-        }
-        return null;
-    }
-     public List<Student> GetAll()
-    {
-        return Data.Values.ToList();
-    }
-
-    public void Update(Student student)
-    {
-        if (Data.ContainsKey(student.Id))
-        {
-            Data [student.Id]=student;
-    
-        }
-    }
-    public void DeleteById(string Id)
-    {
-        Data.Remove(Id);
-    }
+    public void Add(Student student) => _repository.Add(student);
+    public Student GetById(string id) => _repository.GetById(id);
+    public List<Student> GetAll() => _repository.GetAll();
+    public void Update(Student student) => _repository.Update(student);
+    public void DeleteById(string id) => _repository.Delete(id);
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
