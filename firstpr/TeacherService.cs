@@ -1,46 +1,52 @@
 using System.Collections.Generic;
-using firstpr;   
+using firstpr;
 
 public class TeacherService
 {
     private readonly ITeacherRepository _repository;
 
-    public TeacherService(ITeacherRepository repository)
+    public TeacherService(ITeacherRepository repository = null)
     {
         _repository = repository ?? new TeacherRepository();
     }
 
     public void Add(Teacher teacher)
     {
-        if (string.IsNullOrEmpty(teacher.Id) || string.IsNullOrEmpty(teacher.Name))
-            return;
+        if (teacher == null || string.IsNullOrEmpty(teacher.Id)) return;
 
-        _repository.Add(teacher); 
+        if (_repository.GetById(teacher.Id) == null)
+        {
+            _repository.Add(teacher);
+        }
     }
 
     public Teacher GetById(string Id)
     {
-        return _repository.GetById(Id); 
+        return _repository.GetById(Id);
     }
 
     public List<Teacher> GetAll()
     {
-        return _repository.GetAll(); 
+        return _repository.GetAll();
     }
 
     public void Update(Teacher teacher)
     {
-        if (string.IsNullOrEmpty(teacher.Id) || string.IsNullOrEmpty(teacher.Name))
-            return;
+        if (teacher == null || string.IsNullOrEmpty(teacher.Id)) return;
 
-        _repository.Update(teacher); 
+        if (_repository.GetById(teacher.Id) != null)
+        {
+            _repository.Update(teacher);
+        }
     }
 
     public void DeleteById(string Id)
     {
-        if (string.IsNullOrEmpty(Id))
-            return;
+        if (string.IsNullOrEmpty(Id)) return;
 
-        _repository.Delete(Id); 
+        if (_repository.GetById(Id) != null)
+        {
+            _repository.Delete(Id);
+        }
     }
 }
