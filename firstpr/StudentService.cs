@@ -10,14 +10,16 @@ public class StudentService
         _repository = repository ?? new StudentRepository();
     }
 
-    public void Add(Student student)
+    public bool Add(Student student)  // ← حالا bool برمی‌گردونه
     {
-        if (student == null || string.IsNullOrEmpty(student.Id)) return;
+        if (student == null || string.IsNullOrEmpty(student.Id))
+            return false;
 
-        if (_repository.GetById(student.Id) == null)
-        {
-            _repository.Add(student);
-        }
+        if (_repository.GetById(student.Id) != null)  // ← اگر از قبل وجود داشت
+            return false;
+
+        _repository.Add(student);
+        return true;
     }
 
     public Student GetById(string Id)
