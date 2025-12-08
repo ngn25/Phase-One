@@ -17,17 +17,16 @@ public class Teacher
 
 
 
-    public Teacher(string Id, string Name, DateOnly DateOfBirth, string Email, string PhoneNumber)
+    public Teacher(string Id, string Name, string Email, string PhoneNumber)
     {
         this.Id = Id;
         this.Name = Name;
-        this.DateOfBirth = DateOfBirth;
         this.Email = Email;
         this.PhoneNumber = PhoneNumber;
     }
 
     public override string ToString()
     {
-        return "Id: " + Id + ", Name: " + Name + ", DateOfBirth:" + DateOfBirth + ",Email:" + Email + ",PhoneNumber:" + PhoneNumber;
+        return "Id: " + Id + ", Name: " + Name + ",Email:" + Email + ",PhoneNumber:" + PhoneNumber;
     }
 }
