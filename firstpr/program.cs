@@ -1,14 +1,19 @@
 using System;
 using System.Collections.Generic;
+using firstpr.Models;
 using firstpr;
+
 
 class Program
 {
     static void Main()
     {
-        var studentService = new StudentService(new StudentRepository());
-        var teacherService = new TeacherService(new TeacherRepository());
-        var courseService = new CourseService(studentService, teacherService, new CourseRepository());
+        using var context = new SchoolDbContext();
+
+        var studentService = new StudentService(context);
+        var teacherService = new TeacherService(context);
+        var courseService = new CourseService(studentService, teacherService, new CourseRepository(context));
+   
 
         Console.WriteLine("=== School Management Console ===");
         Console.WriteLine("Commands:");
@@ -174,33 +179,35 @@ class Program
             // ========================= COURSE =========================
             else if (target == "course")
             {
-                if (action == "add")
-                {
-                    if (parts.Length < 5) { Console.WriteLine("Usage: course add <id> <name> <teacherId> [studentIds...]"); continue; }
+            if (action == "add")
+{
+    if (parts.Length < 5) { Console.WriteLine("Usage: course add <id> <name> <teacherId> [studentId1 studentId2 ...]"); continue; }
 
-                    string teacherId = parts[4];
-                    if (teacherService.GetById(teacherId) == null)
-                    {
-                        Console.WriteLine($"Error: Teacher with ID '{teacherId}' does not exist!");
-                        continue;
-                    }
+    string teacherId = parts[4];
+    var teacher = teacherService.GetById(teacherId);
+    if (teacher == null)
+    {
+        Console.WriteLine($"Error: Teacher with ID '{teacherId}' does not exist!");
+        continue;
+    }
 
-                    var studentIds = new List<string>();
-                    for (int i = 5; i < parts.Length; i++)
-                        if (studentService.GetById(parts[i]) != null)
-                            studentIds.Add(parts[i]);
+    var students = new List<Student>();
+    for (int i = 5; i < parts.Length; i++)
+    {
+        var s = studentService.GetById(parts[i]);
+        if (s != null) students.Add(s);
+        else Console.WriteLine($"Warning: Student {parts[i]} not found, skipped.");
+    }
 
-                    courseService.Add(new Course
-                    {
-                        Id = parts[2],
-                        Name = parts[3],
-                        TeacherId = teacherId,
-                        StudentIds = studentIds
-                    });
-                    Console.WriteLine("Course added successfully.");
-                    continue;
-                }
-
+    courseService.Add(new Course
+    {
+        Id = parts[2],
+        Name = parts[3],
+        TeacherId = teacherId,
+        Students = students
+    });
+    continue;
+}
                 if (action == "getall")
                 {
                     var list = courseService.GetAll();
@@ -209,62 +216,53 @@ class Program
                     continue;
                 }
 
-                if (action == "getbyid")
-                {
-                    if (parts.Length < 3) { Console.WriteLine("Usage: course getbyid <id>"); continue; }
-                    var course = courseService.GetById(parts[2]);
+   if (action == "getbyid")
+{
+    var course = courseService.GetById(parts[2]);
+    if (course == null) { Console.WriteLine($"Course not found: {parts[2]}"); continue; }
 
-                    if (course == null)
-                    {
-                        Console.WriteLine($"Course not found: {parts[2]}");
-                        continue;
-                    }
+    Console.WriteLine(course);
+    Console.WriteLine($"Teacher: {(course.Teacher != null ? $"{course.Teacher.Name} ({course.Teacher.Id})" : "Not found")}");
 
-                    Console.WriteLine(course);
-                    var teacher = teacherService.GetById(course.TeacherId);
-                    Console.WriteLine($"Teacher: {(teacher != null ? $"{teacher.Name} ({teacher.Id})" : "Not found")}");
+    Console.WriteLine($"Students ({course.Students.Count}):");
+    if (course.Students.Count == 0)
+        Console.WriteLine("  (No students enrolled)");
+    else
+        foreach (var s in course.Students)
+            Console.WriteLine($"  - {s.Name} ({s.Id})");
+    continue;
+}
+            if (action == "update")
+{
+    if (parts.Length < 5) { Console.WriteLine("Usage: course update <id> <newName> <newTeacherId> [studentIds...]"); continue; }
 
-                    Console.WriteLine($"Students ({course.StudentIds.Count}):");
-                    if (course.StudentIds.Count == 0)
-                        Console.WriteLine("  (No students enrolled)");
-                    else
-                        foreach (var sid in course.StudentIds)
-                        {
-                            var s = studentService.GetById(sid);
-                            Console.WriteLine(s != null ? $"  - {s.Name} ({s.Id})" : $"  - {sid} (Deleted)");
-                        }
-                    continue;
-                }
+    string newTeacherId = parts[4];
+    var teacher = teacherService.GetById(newTeacherId);
+    if (teacher == null)
+    {
+        Console.WriteLine($"Error: Teacher with ID '{newTeacherId}' does not exist!");
+        continue;
+    }
 
-                if (action == "update")
-                {
-                    if (parts.Length < 5) { Console.WriteLine("Usage: course update <id> <newName> <newTeacherId> [studentIds...]"); continue; }
+    var oldCourse = courseService.GetById(parts[2]);
+    if (oldCourse == null) { Console.WriteLine("Course not found!"); continue; }
 
-                    string newTeacherId = parts[4];
-                    if (teacherService.GetById(newTeacherId) == null)
-                    {
-                        Console.WriteLine($"Error: Teacher with ID '{newTeacherId}' does not exist!");
-                        continue;
-                    }
+    var newStudents = new List<Student>();
+    for (int i = 5; i < parts.Length; i++)
+    {
+        var s = studentService.GetById(parts[i]);
+        if (s != null) newStudents.Add(s);
+    }
 
-                    var old = courseService.GetById(parts[2]);
-                    if (old == null) { Console.WriteLine("Course not found!"); continue; }
-
-                    var newStudentIds = parts.Length > 5
-                        ? parts.Skip(5).Where(id => studentService.GetById(id) != null).ToList()
-                        : old.StudentIds;
-
-                    courseService.Update(new Course
-                    {
-                        Id = parts[2],
-                        Name = parts[3],
-                        TeacherId = newTeacherId,
-                        StudentIds = newStudentIds
-                    });
-                    Console.WriteLine("Course updated successfully.");
-                    continue;
-                }
-
+    courseService.Update(new Course
+    {
+        Id = parts[2],
+        Name = parts[3],
+        TeacherId = newTeacherId,
+        Students = newStudents.Count > 0 ? newStudents : oldCourse.Students
+    });
+    continue;
+}
                 if (action == "remove")
                 {
                     if (parts.Length < 3) { Console.WriteLine("Usage: course remove <id>"); continue; }

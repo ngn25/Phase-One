@@ -1,15 +1,17 @@
 using System.Collections.Generic;
+using firstpr.Models;
 using firstpr;
+
+
 
 public class StudentService
 {
     private readonly IStudentRepository _repository;
 
-    public StudentService(IStudentRepository repository = null)
+    public StudentService(SchoolDbContext context)
     {
-        _repository = repository ?? new StudentRepository();
+        _repository = new StudentRepository(context);
     }
-
     public bool Add(Student student)  // ← حالا bool برمی‌گردونه
     {
         if (student == null || string.IsNullOrEmpty(student.Id))

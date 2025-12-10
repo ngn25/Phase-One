@@ -1,21 +1,20 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using firstpr.Models;
+using firstpr;
 
 namespace firstpr
 {
-    public class CourseService
-    {
-        private readonly ICourseRepository _repository;
-        private readonly StudentService _studentService;
-        private readonly TeacherService _teacherService;
+public class CourseService
+{
+    private readonly ICourseRepository _repository;
+    private readonly StudentService _studentService;
+    private readonly TeacherService _teacherService;
 
-        public CourseService(StudentService studentService, TeacherService teacherService, ICourseRepository repository)
-        {
-            _studentService = studentService;
-            _teacherService = teacherService;
-            _repository = repository;
-        }
+    public CourseService(StudentService studentService, TeacherService teacherService, ICourseRepository repository)
+    {
+        _studentService = studentService;
+        _teacherService = teacherService;
+        _repository = repository;
+    }
 
         public void Add(Course course)
         {
@@ -32,14 +31,14 @@ namespace firstpr
                 return;
             }
 
-            var missingStudents = course.StudentIds
-                .Where(sid => _studentService.GetById(sid) == null)
-                .ToList();
-
-            if (missingStudents.Any())
+            // چک کردن وجود همه دانشجویان
+            foreach (var student in course.Students)
             {
-                Console.WriteLine($"Error: The following students not found: {string.Join(", ", missingStudents)}");
-                return;
+                if (_studentService.GetById(student.Id) == null)
+                {
+                    Console.WriteLine($"Error: Student with id '{student.Id}' not found!");
+                    return;
+                }
             }
 
             _repository.Add(course);
@@ -61,29 +60,22 @@ namespace firstpr
                 return;
             }
 
-            var missingStudents = course.StudentIds
-                .Where(sid => _studentService.GetById(sid) == null)
-                .ToList();
-
-            if (missingStudents.Any())
+            foreach (var student in course.Students)
             {
-                Console.WriteLine($"Error: The following students not found: {string.Join(", ", missingStudents)}");
-                return;
+                if (_studentService.GetById(student.Id) == null)
+                {
+                    Console.WriteLine($"Error: Student with id '{student.Id}' not found!");
+                    return;
+                }
             }
 
             _repository.Update(course);
             Console.WriteLine("Course updated successfully.");
         }
 
-        public Course? GetById(string id)
-        {
-            return _repository.GetById(id);
-        }
+        public Course? GetById(string id) => _repository.GetById(id);
 
-        public List<Course> GetAll()
-        {
-            return _repository.GetAll();
-        }
+        public List<Course> GetAll() => _repository.GetAll();
 
         public void DeleteById(string id)
         {
@@ -92,11 +84,8 @@ namespace firstpr
                 Console.WriteLine($"Course with id '{id}' not found!");
                 return;
             }
-
             _repository.Delete(id);
             Console.WriteLine("Course removed successfully.");
         }
-
-        public ICourseRepository GetRepository() => _repository;
     }
 }

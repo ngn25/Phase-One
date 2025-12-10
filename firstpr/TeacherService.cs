@@ -1,13 +1,16 @@
 using System.Collections.Generic;
+using firstpr.Models;
 using firstpr;
 
-public class TeacherService
+
+
+    public class TeacherService
 {
     private readonly ITeacherRepository _repository;
 
-    public TeacherService(ITeacherRepository repository = null)
+    public TeacherService(SchoolDbContext context)
     {
-        _repository = repository ?? new TeacherRepository();
+        _repository = new TeacherRepository(context);
     }
 
     public void Add(Teacher teacher)
