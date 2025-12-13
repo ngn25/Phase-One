@@ -22,14 +22,12 @@ namespace firstpr.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // رابطه یک به چند: معلم → درس‌ها
             modelBuilder.Entity<Course>()
                 .HasOne(c => c.Teacher)
-                .WithMany(t => t.CoursesTaught)           // اگر در Teacher تعریف کردی
+                .WithMany(t => t.CoursesTaught)           
                 .HasForeignKey(c => c.TeacherId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // رابطه چند به چند: درس‌ها و دانشجویان
             modelBuilder.Entity<Course>()
                 .HasMany(c => c.Students)
                 .WithMany(s => s.Courses)

@@ -41,7 +41,6 @@ namespace firstpr
             {
                 _context.Entry(existing).CurrentValues.SetValues(course);
 
-                // بروزرسانی لیست دانشجویان
                 existing.Students.Clear();
                 foreach (var student in course.Students)
                 {
@@ -49,7 +48,6 @@ namespace firstpr
                     if (s != null) existing.Students.Add(s);
                 }
 
-                // بروزرسانی معلم
                 if (!string.IsNullOrEmpty(course.TeacherId))
                 {
                     var teacher = _context.Teachers.Find(course.TeacherId);

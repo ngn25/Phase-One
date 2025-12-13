@@ -12,8 +12,8 @@ using firstpr.Models;
 namespace ConsoleApp1.Migrations
 {
     [DbContext(typeof(SchoolDbContext))]
-    [Migration("20251210082445_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20251213075324_CreateSchoolDatabase")]
+    partial class CreateSchoolDatabase
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -37,7 +37,7 @@ namespace ConsoleApp1.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("CourseStudents");
+                    b.ToTable("CourseStudents", (string)null);
                 });
 
             modelBuilder.Entity("firstpr.Models.Course", b =>
@@ -53,14 +53,9 @@ namespace ConsoleApp1.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("TeacherId1")
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("TeacherId");
-
-                    b.HasIndex("TeacherId1");
 
                     b.ToTable("Courses");
                 });
@@ -126,14 +121,10 @@ namespace ConsoleApp1.Migrations
             modelBuilder.Entity("firstpr.Models.Course", b =>
                 {
                     b.HasOne("firstpr.Models.Teacher", "Teacher")
-                        .WithMany()
-                        .HasForeignKey("TeacherId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("firstpr.Models.Teacher", null)
                         .WithMany("CoursesTaught")
-                        .HasForeignKey("TeacherId1");
+                        .HasForeignKey("TeacherId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.Navigation("Teacher");
                 });

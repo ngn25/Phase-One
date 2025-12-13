@@ -12,12 +12,12 @@ public class StudentService
     {
         _repository = new StudentRepository(context);
     }
-    public bool Add(Student student)  // ← حالا bool برمی‌گردونه
+    public bool Add(Student student)  
     {
         if (student == null || string.IsNullOrEmpty(student.Id))
             return false;
 
-        if (_repository.GetById(student.Id) != null)  // ← اگر از قبل وجود داشت
+        if (_repository.GetById(student.Id) != null)  
             return false;
 
         _repository.Add(student);
