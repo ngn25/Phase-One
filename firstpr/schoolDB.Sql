@@ -26,7 +26,7 @@ VALUES
     ('S009', 'Isabella Rodriguez', '2007-08-08', 'isabella.r@student.com', '555-2009'),
     ('S010', 'Lucas Martinez', '2006-10-20', 'lucas.m@student.com', '555-2010');
 
--- 3. Courses (حالا فقط یک TeacherId داریم - معلم اصلی)
+
 INSERT INTO Courses (Id, Name, TeacherId)
 VALUES 
     ('MATH301', 'Calculus III', 'T001'),
@@ -35,7 +35,6 @@ VALUES
     ('CHEM202', 'Organic Chemistry', 'T006'),
     ('HIST101', 'World History', 'T008');
 
--- 4. CourseStudents (ثبت‌نام دانشجویان در درس‌ها)
 INSERT INTO CourseStudents (CourseId, StudentId)
 VALUES 
     ('MATH301', 'S001'), ('MATH301', 'S002'), ('MATH301', 'S003'), ('MATH301', 'S005'), ('MATH301', 'S008'),
