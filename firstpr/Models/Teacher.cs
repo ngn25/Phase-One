@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace firstpr.Models
 {
     public class Teacher
@@ -7,6 +9,7 @@ namespace firstpr.Models
         public string? Email { get; set; }
         public string? PhoneNumber { get; set; }
 
+        [JsonIgnore]
         public List<Course> CoursesTaught { get; set; } = new();
 
         public override string ToString()

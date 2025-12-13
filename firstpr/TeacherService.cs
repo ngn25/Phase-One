@@ -8,9 +8,9 @@ using firstpr;
 {
     private readonly ITeacherRepository _repository;
 
-    public TeacherService(SchoolDbContext context)
+    public TeacherService(ITeacherRepository repository)
     {
-        _repository = new TeacherRepository(context);
+        _repository = repository;
     }
 
     public void Add(Teacher teacher)

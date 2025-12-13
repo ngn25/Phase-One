@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace firstpr.Models
 {
     public class Course
@@ -7,6 +9,7 @@ namespace firstpr.Models
         
              public string TeacherId { get; set; } = null!;
 
+        [JsonIgnore]
         public Teacher? Teacher { get; set; }
         public ICollection<Student> Students { get; set; } = new List<Student>();
 

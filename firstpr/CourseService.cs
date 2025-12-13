@@ -30,16 +30,21 @@ public class CourseService
                 Console.WriteLine($"Error: Teacher with id '{course.TeacherId}' not found!");
                 return;
             }
+            course.Teacher = teacher;
 
+            List<Student> students = new List<Student>();
             // چک کردن وجود همه دانشجویان
             foreach (var student in course.Students)
             {
-                if (_studentService.GetById(student.Id) == null)
+                var studentInDb = _studentService.GetById(student.Id);
+                if (studentInDb == null)
                 {
                     Console.WriteLine($"Error: Student with id '{student.Id}' not found!");
                     return;
                 }
+                students.Add(studentInDb);
             }
+            course.Students = students;
 
             _repository.Add(course);
             Console.WriteLine("Course added successfully.");
@@ -59,15 +64,20 @@ public class CourseService
                 Console.WriteLine($"Error: Teacher with id '{course.TeacherId}' not found!");
                 return;
             }
+            course.Teacher = teacher;
 
+            List<Student> students = new List<Student>();
             foreach (var student in course.Students)
             {
-                if (_studentService.GetById(student.Id) == null)
+                var studentInDb = _studentService.GetById(student.Id);
+                if (studentInDb == null)
                 {
                     Console.WriteLine($"Error: Student with id '{student.Id}' not found!");
                     return;
                 }
+                students.Add(studentInDb);
             }
+            course.Students = students;
 
             _repository.Update(course);
             Console.WriteLine("Course updated successfully.");

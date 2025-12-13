@@ -8,11 +8,13 @@ public class StudentService
 {
     private readonly IStudentRepository _repository;
 
-    public StudentService(SchoolDbContext context)
+    public StudentService(IStudentRepository repository)
     {
-        _repository = new StudentRepository(context);
+        _repository = repository;
     }
-    public bool Add(Student student)  
+
+    public bool Add(Student student) 
+  
     {
         if (student == null || string.IsNullOrEmpty(student.Id))
             return false;
