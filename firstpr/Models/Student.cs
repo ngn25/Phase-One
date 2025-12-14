@@ -1,4 +1,3 @@
-
 namespace firstpr.Models
 {
     public class Student
@@ -9,12 +8,11 @@ namespace firstpr.Models
         public string? Email { get; set; }
         public string? PhoneNumber { get; set; }
 
-  
-        public List<Course> Courses { get; set; } = new();
+        public ICollection<CourseStudent> CourseStudents { get; set; } = new List<CourseStudent>();
 
         public override string ToString()
         {
-            return $"Id: {Id}, Name: {Name}, DOB: {DateOfBirth}, Email: {Email}, Phone: {PhoneNumber}";
+            return $"Id: {Id}, Name: {Name}, DOB: {DateOfBirth}, Email: {Email}, Phone: {PhoneNumber}, Courses: {CourseStudents.Count}";
         }
     }
 }

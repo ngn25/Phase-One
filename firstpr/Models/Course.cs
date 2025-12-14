@@ -6,13 +6,13 @@ namespace firstpr.Models
         public string Name { get; set; } = string.Empty;
 
         public int TeacherId { get; set; }        
-
         public Teacher? Teacher { get; set; }
-        public ICollection<Student> Students { get; set; } = new List<Student>();
+
+        public ICollection<CourseStudent> CourseStudents { get; set; } = new List<CourseStudent>();
 
         public override string ToString()
         {
-            return $"{Id} | {Name} | Teacher: {Teacher?.Name ?? "None"} | Students: {Students.Count}";
+            return $"{Id} | {Name} | Teacher: {Teacher?.Name ?? "None"} | Students: {CourseStudents.Count}";
         }
     }
 }

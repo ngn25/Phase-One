@@ -2,8 +2,6 @@ using firstpr.Models;
 
 namespace firstpr.Services
 {
-    
-
     public class CourseService
     {
         private readonly ICourseRepository _repository;
@@ -20,12 +18,11 @@ namespace firstpr.Services
             _repository = repository;
         }
 
-        public void Add(Course course)
+        public void Add(Course course, List<int> studentIds)
         {
             if (course == null)
                 return;
 
-            // New entity must have Id = 0
             if (course.Id != 0)
             {
                 Console.WriteLine("Error: New course must not have an Id.");
@@ -40,24 +37,29 @@ namespace firstpr.Services
             }
             course.Teacher = teacher;
 
-            var students = new List<Student>();
-            foreach (var student in course.Students)
+            // Clear existing CourseStudents and add new
+            course.CourseStudents.Clear();
+            foreach (var studentId in studentIds)
             {
-                var studentInDb = _studentService.GetById(student.Id);
-                if (studentInDb == null)
+                var student = _studentService.GetById(studentId);
+                if (student == null)
                 {
-                    Console.WriteLine($"Error: Student with id '{student.Id}' not found!");
+                    Console.WriteLine($"Error: Student with id '{studentId}' not found!");
                     return;
                 }
-                students.Add(studentInDb);
+
+                course.CourseStudents.Add(new CourseStudent
+                {
+                    Course = course,
+                    Student = student
+                });
             }
-            course.Students = students;
 
             _repository.Add(course);
             Console.WriteLine("Course added successfully.");
         }
 
-        public void Update(Course course)
+        public void Update(Course course, List<int> studentIds)
         {
             if (course == null || course.Id <= 0)
                 return;
@@ -77,18 +79,23 @@ namespace firstpr.Services
             }
             course.Teacher = teacher;
 
-            var students = new List<Student>();
-            foreach (var student in course.Students)
+            // Clear old students and add new
+            course.CourseStudents.Clear();
+            foreach (var studentId in studentIds)
             {
-                var studentInDb = _studentService.GetById(student.Id);
-                if (studentInDb == null)
+                var student = _studentService.GetById(studentId);
+                if (student == null)
                 {
-                    Console.WriteLine($"Error: Student with id '{student.Id}' not found!");
+                    Console.WriteLine($"Error: Student with id '{studentId}' not found!");
                     return;
                 }
-                students.Add(studentInDb);
+
+                course.CourseStudents.Add(new CourseStudent
+                {
+                    Course = course,
+                    Student = student
+                });
             }
-            course.Students = students;
 
             _repository.Update(course);
             Console.WriteLine("Course updated successfully.");

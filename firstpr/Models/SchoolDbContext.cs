@@ -9,9 +9,10 @@ namespace firstpr.Models
         {
         }
 
-        public DbSet<Student> Students { get; set; }
-        public DbSet<Teacher> Teachers { get; set; }
-        public DbSet<Course> Courses { get; set; }
+        public DbSet<Student> Students { get; set; } = null!;
+        public DbSet<Teacher> Teachers { get; set; } = null!;
+        public DbSet<Course> Courses { get; set; } = null!;
+        public DbSet<CourseStudent> CourseStudents { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -21,18 +22,18 @@ namespace firstpr.Models
                 .HasForeignKey(c => c.TeacherId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<Course>()
-                .HasMany(c => c.Students)
-                .WithMany(s => s.Courses)
-                .UsingEntity<Dictionary<string, object>>(
-                    "CourseStudents",
-                    r => r.HasOne<Student>().WithMany().HasForeignKey("StudentId"),
-                    l => l.HasOne<Course>().WithMany().HasForeignKey("CourseId"),
-                    je =>
-                    {
-                        je.HasKey("CourseId", "StudentId");
-                        je.ToTable("CourseStudents");
-                    });
+            modelBuilder.Entity<CourseStudent>()
+                .HasKey(cs => new { cs.CourseId, cs.StudentId });
+
+            modelBuilder.Entity<CourseStudent>()
+                .HasOne(cs => cs.Course)
+                .WithMany(c => c.CourseStudents)
+                .HasForeignKey(cs => cs.CourseId);
+
+            modelBuilder.Entity<CourseStudent>()
+                .HasOne(cs => cs.Student)
+                .WithMany(s => s.CourseStudents)
+                .HasForeignKey(cs => cs.StudentId);
         }
     }
 }

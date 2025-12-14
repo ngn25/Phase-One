@@ -16,7 +16,8 @@ namespace firstpr.Repositories
         {
             return _context.Courses
                 .Include(c => c.Teacher)
-                .Include(c => c.Students)
+                .Include(c => c.CourseStudents)
+                    .ThenInclude(cs => cs.Student)
                 .ToList();
         }
 
@@ -27,7 +28,8 @@ namespace firstpr.Repositories
 
             return _context.Courses
                 .Include(c => c.Teacher)
-                .Include(c => c.Students)
+                .Include(c => c.CourseStudents)
+                    .ThenInclude(cs => cs.Student)
                 .FirstOrDefault(c => c.Id == id);
         }
 
@@ -40,25 +42,31 @@ namespace firstpr.Repositories
         public void Update(Course course)
         {
             var existing = _context.Courses
-                .Include(c => c.Students)
+                .Include(c => c.CourseStudents)
                 .FirstOrDefault(c => c.Id == course.Id);
 
             if (existing == null)
                 return;
 
-            // Update scalar properties
             _context.Entry(existing).CurrentValues.SetValues(course);
 
-            // Update students (many-to-many)
-            existing.Students.Clear();
-            foreach (var student in course.Students)
+            // Clear old CourseStudents and add new
+            existing.CourseStudents.Clear();
+            foreach (var cs in course.CourseStudents)
             {
-                var s = _context.Students.Find(student.Id);
-                if (s != null)
-                    existing.Students.Add(s);
+                var student = _context.Students.Find(cs.StudentId);
+                if (student != null)
+                {
+                    existing.CourseStudents.Add(new CourseStudent
+                    {
+                        CourseId = course.Id,
+                        StudentId = student.Id,
+                        Student = student,
+                        Course = existing
+                    });
+                }
             }
 
-            // Update teacher (many-to-one)
             if (course.TeacherId > 0)
             {
                 var teacher = _context.Teachers.Find(course.TeacherId);
