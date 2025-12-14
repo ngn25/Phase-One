@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using firstpr.Models;
 
 namespace firstpr
@@ -11,7 +10,7 @@ namespace firstpr
 
         public List<Teacher> GetAll() => _context.Teachers.ToList();
 
-        public Teacher? GetById(string id) => _context.Teachers.Find(id);
+        public Teacher? GetById(int id) => _context.Teachers.Find(id);
 
         public void Add(Teacher teacher)
         {
@@ -25,7 +24,7 @@ namespace firstpr
             _context.SaveChanges();
         }
 
-        public void Delete(string id)
+        public void Delete(int id)
         {
             var teacher = _context.Teachers.Find(id);
             if (teacher != null)

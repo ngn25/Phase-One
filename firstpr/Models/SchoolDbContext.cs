@@ -4,27 +4,20 @@ namespace firstpr.Models
 {
     public class SchoolDbContext : DbContext
     {
-        public SchoolDbContext() { }
-
-        public SchoolDbContext(DbContextOptions<SchoolDbContext> options) : base(options) { }
+        public SchoolDbContext(DbContextOptions<SchoolDbContext> options)
+            : base(options)
+        {
+        }
 
         public DbSet<Student> Students { get; set; }
         public DbSet<Teacher> Teachers { get; set; }
         public DbSet<Course> Courses { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-                optionsBuilder.UseSqlServer("Server=.;Database=School_DB;Trusted_Connection=True;TrustServerCertificate=True;");
-            }
-        }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Course>()
                 .HasOne(c => c.Teacher)
-                .WithMany(t => t.CoursesTaught)           
+                .WithMany(t => t.CoursesTaught)
                 .HasForeignKey(c => c.TeacherId)
                 .OnDelete(DeleteBehavior.NoAction);
 

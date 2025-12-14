@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using firstpr.Models;
+using firstpr.Services;
 
 namespace firstpr.Controllers
 {
@@ -14,7 +15,7 @@ namespace firstpr.Controllers
         public IActionResult GetAll() => Ok(_service.GetAll());
         
         [HttpGet("{id}")]
-        public IActionResult GetById(string id) => _service.GetById(id) is var c && c != null ? Ok(c) : NotFound();
+        public IActionResult GetById(int id) => _service.GetById(id) is var c && c != null ? Ok(c) : NotFound();
         
         [HttpPost]
         public IActionResult Add(Teacher teacher) { _service.Add(teacher); return Ok(teacher); }
@@ -27,7 +28,7 @@ namespace firstpr.Controllers
         } 
         
         [HttpDelete("{id}")]
-        public IActionResult DeleteById(string id)
+        public IActionResult DeleteById(int id)
         {
             _service.DeleteById(id);
             return NoContent();

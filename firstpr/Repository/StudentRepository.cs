@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+
 using firstpr.Models;
 
 namespace firstpr
@@ -11,7 +11,7 @@ namespace firstpr
 
         public List<Student> GetAll() => _context.Students.ToList();
 
-        public Student? GetById(string id) => _context.Students.Find(id);
+        public Student? GetById(int id) => _context.Students.Find(id);
 
         public void Add(Student student)
         {
@@ -25,7 +25,7 @@ namespace firstpr
             _context.SaveChanges();
         }
 
-        public void Delete(string id)
+        public void Delete(int id)
         {
             var student = _context.Students.Find(id);
             if (student != null)

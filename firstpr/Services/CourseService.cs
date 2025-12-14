@@ -1,26 +1,34 @@
 using firstpr.Models;
-using firstpr;
 
-namespace firstpr
+namespace firstpr.Services
 {
-public class CourseService
-{
-    private readonly ICourseRepository _repository;
-    private readonly StudentService _studentService;
-    private readonly TeacherService _teacherService;
+    
 
-    public CourseService(StudentService studentService, TeacherService teacherService, ICourseRepository repository)
+    public class CourseService
     {
-        _studentService = studentService;
-        _teacherService = teacherService;
-        _repository = repository;
-    }
+        private readonly ICourseRepository _repository;
+        private readonly StudentService _studentService;
+        private readonly TeacherService _teacherService;
+
+        public CourseService(
+            StudentService studentService,
+            TeacherService teacherService,
+            ICourseRepository repository)
+        {
+            _studentService = studentService;
+            _teacherService = teacherService;
+            _repository = repository;
+        }
 
         public void Add(Course course)
         {
-            if (_repository.GetById(course.Id) != null)
+            if (course == null)
+                return;
+
+            // New entity must have Id = 0
+            if (course.Id != 0)
             {
-                Console.WriteLine($"Error: Course with id '{course.Id}' already exists!");
+                Console.WriteLine("Error: New course must not have an Id.");
                 return;
             }
 
@@ -32,8 +40,7 @@ public class CourseService
             }
             course.Teacher = teacher;
 
-            List<Student> students = new List<Student>();
-            // چک کردن وجود همه دانشجویان
+            var students = new List<Student>();
             foreach (var student in course.Students)
             {
                 var studentInDb = _studentService.GetById(student.Id);
@@ -52,7 +59,11 @@ public class CourseService
 
         public void Update(Course course)
         {
-            if (_repository.GetById(course.Id) == null)
+            if (course == null || course.Id <= 0)
+                return;
+
+            var existingCourse = _repository.GetById(course.Id);
+            if (existingCourse == null)
             {
                 Console.WriteLine($"Error: Course with id '{course.Id}' not found!");
                 return;
@@ -66,7 +77,7 @@ public class CourseService
             }
             course.Teacher = teacher;
 
-            List<Student> students = new List<Student>();
+            var students = new List<Student>();
             foreach (var student in course.Students)
             {
                 var studentInDb = _studentService.GetById(student.Id);
@@ -83,17 +94,31 @@ public class CourseService
             Console.WriteLine("Course updated successfully.");
         }
 
-        public Course? GetById(string id) => _repository.GetById(id);
-
-        public List<Course> GetAll() => _repository.GetAll();
-
-        public void DeleteById(string id)
+        public Course? GetById(int id)
         {
-            if (_repository.GetById(id) == null)
+            if (id <= 0)
+                return null;
+
+            return _repository.GetById(id);
+        }
+
+        public List<Course> GetAll()
+        {
+            return _repository.GetAll();
+        }
+
+        public void DeleteById(int id)
+        {
+            if (id <= 0)
+                return;
+
+            var course = _repository.GetById(id);
+            if (course == null)
             {
                 Console.WriteLine($"Course with id '{id}' not found!");
                 return;
             }
+
             _repository.Delete(id);
             Console.WriteLine("Course removed successfully.");
         }

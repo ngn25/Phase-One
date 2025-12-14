@@ -7,9 +7,9 @@ namespace firstpr
     public interface ICourseRepository
     {
         List<Course> GetAll();
-        Course GetById(string id);
+        Course GetById(int id);
         void Add(Course course);
         void Update(Course course);
-        void Delete(string id);
+        void Delete(int id);
     }
 }
