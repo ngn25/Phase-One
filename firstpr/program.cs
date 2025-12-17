@@ -26,10 +26,22 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+
 var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
+
+try
+{
+    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+    {
+        FileName = "http://localhost:5000/swagger",
+        UseShellExecute = true
+    });
+}
+catch { }
+
 
 app.MapControllers();
 
